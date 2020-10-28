@@ -449,6 +449,14 @@ type certRequest struct {
 	appPublicAddr string
 	// appClusterName is the name of the cluster this application is in.
 	appClusterName string
+	// dbServiceName specifies the name of the database instance to encode.
+	dbServiceName string
+	// dbProtocol is the type of the database cert is being issued for.
+	dbProtocol string
+	// dbUsername is the optional database user.
+	dbUsername string
+	// dbDatabase is the optional database name.
+	dbDatabase string
 }
 
 // GenerateUserTestCerts is used to generate user certificate, used internally for tests
@@ -505,6 +513,34 @@ func (a *Server) GenerateUserAppTestCert(publicKey []byte, username string, ttl 
 		appSessionID:   uuid.New(),
 		appPublicAddr:  publicAddr,
 		appClusterName: clusterName,
+	})
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+	return certs.tls, nil
+}
+
+// GenerateDatabaseTestCert generates a database access certificate for the
+// provided parameters. Used only internally in tests.
+func (a *Server) GenerateDatabaseTestCert(pub []byte, cluster, service, username string, ttl time.Duration) ([]byte, error) {
+	user, err := a.Identity.GetUser(username, false)
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+	checker, err := services.FetchRoles(user.GetRoles(), a.Access, user.GetTraits())
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+	certs, err := a.generateUserCert(certRequest{
+		user:      user,
+		publicKey: pub,
+		checker:   checker,
+		ttl:       ttl,
+		traits: wrappers.Traits(map[string][]string{
+			teleport.TraitLogins: {username},
+		}),
+		routeToCluster: cluster,
+		dbServiceName:  service,
 	})
 	if err != nil {
 		return nil, trace.Wrap(err)
@@ -612,6 +648,13 @@ func (a *Server) generateUserCert(req certRequest) (*certs, error) {
 			log.WithError(err).Debug("Failed setting default kubernetes cluster for user login (user did not provide a cluster); leaving KubernetesCluster extension in the TLS certificate empty")
 		}
 	}
+
+	// See which database names and users this user is allowed to use.
+	dbNames, dbUsers, err := req.checker.CheckDatabaseNamesAndUsers(sessionTTL, req.overrideRoleTTL)
+	if err != nil && !trace.IsNotFound(err) {
+		return nil, trace.Wrap(err)
+	}
+
 	// generate TLS certificate
 	tlsAuthority, err := ca.TLSCA()
 	if err != nil {
@@ -633,6 +676,14 @@ func (a *Server) generateUserCert(req certRequest) (*certs, error) {
 			ClusterName: req.appClusterName,
 		},
 		TeleportCluster: clusterName,
+		RouteToDatabase: tlsca.RouteToDatabase{
+			ServiceName: req.dbServiceName,
+			Protocol:    req.dbProtocol,
+			Username:    req.dbUsername,
+			Database:    req.dbDatabase,
+		},
+		DatabaseNames: dbNames,
+		DatabaseUsers: dbUsers,
 	}
 	subject, err := identity.Subject()
 	if err != nil {
@@ -1827,6 +1878,11 @@ func (a *Server) GetAppServers(ctx context.Context, namespace string, opts ...se
 // GetAppSession is a part of the auth.AccessPoint implementation.
 func (a *Server) GetAppSession(ctx context.Context, req services.GetAppSessionRequest) (services.WebSession, error) {
 	return a.GetCache().GetAppSession(ctx, req)
+}
+
+// GetDatabaseServers returns all registers database proxy servers.
+func (a *Server) GetDatabaseServers(ctx context.Context, namespace string, opts ...services.MarshalOption) ([]services.DatabaseServer, error) {
+	return a.GetCache().GetDatabaseServers(ctx, namespace, opts...)
 }
 
 // authKeepAliver is a keep aliver using auth server directly
