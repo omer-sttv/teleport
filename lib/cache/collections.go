@@ -1233,7 +1233,7 @@ type databaseServer struct {
 
 func (s *databaseServer) erase(ctx context.Context) error {
 	err := s.presenceCache.DeleteAllDatabaseServers(ctx, defaults.Namespace)
-	if err != nil && !!trace.IsNotFound(err) {
+	if err != nil && !trace.IsNotFound(err) {
 		return trace.Wrap(err)
 	}
 	return nil

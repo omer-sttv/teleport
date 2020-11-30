@@ -207,8 +207,6 @@ type proxyContext struct {
 	site reversetunnel.RemoteSite
 	// server is a database server that has the requested database.
 	server services.DatabaseServer
-	// remote indicates if this is a request for remote cluster.
-	remote bool
 }
 
 func (s *ProxyServer) authorize(ctx context.Context) (*proxyContext, error) {

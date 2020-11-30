@@ -2123,7 +2123,7 @@ func TestCheckDatabaseNamesAndUsers(t *testing.T) {
 	roleEmpty := &RoleV3{
 		Metadata: Metadata{Name: "roleA", Namespace: defaults.Namespace},
 		Spec: RoleSpecV3{
-			Options: RoleOptions{MaxSessionTTL: Duration(time.Duration(time.Hour))},
+			Options: RoleOptions{MaxSessionTTL: Duration(time.Hour)},
 			Allow: RoleConditions{
 				Namespaces: []string{defaults.Namespace},
 			},
@@ -2132,7 +2132,7 @@ func TestCheckDatabaseNamesAndUsers(t *testing.T) {
 	roleA := &RoleV3{
 		Metadata: Metadata{Name: "roleA", Namespace: defaults.Namespace},
 		Spec: RoleSpecV3{
-			Options: RoleOptions{MaxSessionTTL: Duration(2 * time.Duration(time.Hour))},
+			Options: RoleOptions{MaxSessionTTL: Duration(2 * time.Hour)},
 			Allow: RoleConditions{
 				Namespaces:    []string{defaults.Namespace},
 				DatabaseNames: []string{"postgres", "main"},
@@ -2143,7 +2143,7 @@ func TestCheckDatabaseNamesAndUsers(t *testing.T) {
 	roleB := &RoleV3{
 		Metadata: Metadata{Name: "roleB", Namespace: defaults.Namespace},
 		Spec: RoleSpecV3{
-			Options: RoleOptions{MaxSessionTTL: Duration(time.Duration(time.Hour))},
+			Options: RoleOptions{MaxSessionTTL: Duration(time.Hour)},
 			Allow: RoleConditions{
 				Namespaces:    []string{defaults.Namespace},
 				DatabaseNames: []string{"metrics"},

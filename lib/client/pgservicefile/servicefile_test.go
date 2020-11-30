@@ -61,6 +61,6 @@ func TestServiceFile(t *testing.T) {
 	err = serviceFile.Delete(profile.Name)
 	require.NoError(t, err)
 
-	env, err = serviceFile.Env(profile.Name)
+	_, err = serviceFile.Env(profile.Name)
 	require.Error(t, err)
 }

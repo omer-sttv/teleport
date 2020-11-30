@@ -91,10 +91,10 @@ func Delete(name string) error {
 	return nil
 }
 
-// serviceFile represents Postgres connection service file.
+// ServiceFile represents Postgres connection service file.
 //
 // https://www.postgresql.org/docs/13/libpq-pgservice.html
-type serviceFile struct {
+type ServiceFile struct {
 	// iniFile is the underlying ini file.
 	iniFile *ini.File
 	// path is the service file path.
@@ -103,7 +103,7 @@ type serviceFile struct {
 
 // Load loads Postgres connection service file from the provided path or the
 // default location if it's not provided.
-func Load(path string) (*serviceFile, error) {
+func Load(path string) (*ServiceFile, error) {
 	// If the file path wasn't provided, use the default location which
 	// is .pg_service.conf file in the user's home directory.
 	if path == "" {
@@ -119,7 +119,7 @@ func Load(path string) (*serviceFile, error) {
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
-	return &serviceFile{
+	return &ServiceFile{
 		iniFile: iniFile,
 		path:    path,
 	}, nil
@@ -142,7 +142,7 @@ func Load(path string) (*serviceFile, error) {
 // parameter:
 //
 //   $ psql "service=postgres <other parameters>"
-func (s *serviceFile) Add(profile ConnectProfile) error {
+func (s *ServiceFile) Add(profile ConnectProfile) error {
 	section := s.iniFile.Section(profile.Name)
 	if section != nil {
 		s.iniFile.DeleteSection(profile.Name)
@@ -169,7 +169,7 @@ func (s *serviceFile) Add(profile ConnectProfile) error {
 
 // Env returns the specified connection profile information as a set of
 // environment variables recognized by Postgres clients.
-func (s *serviceFile) Env(name string) (map[string]string, error) {
+func (s *ServiceFile) Env(name string) (map[string]string, error) {
 	section, err := s.iniFile.GetSection(name)
 	if err != nil {
 		return nil, trace.Wrap(err)
@@ -224,7 +224,7 @@ func (s *serviceFile) Env(name string) (map[string]string, error) {
 }
 
 // Delete deletes the specified connection profile and saves the service file.
-func (s *serviceFile) Delete(name string) error {
+func (s *ServiceFile) Delete(name string) error {
 	s.iniFile.DeleteSection(name)
 	return s.iniFile.SaveTo(s.path)
 }

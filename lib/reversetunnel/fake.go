@@ -27,7 +27,7 @@ import (
 // FakeServer is a fake reversetunnel.Server implementation used in tests.
 type FakeServer struct {
 	Server
-	// Sites is a list of sites registed via this fake reverse tunnel.
+	// Sites is a list of sites registered via this fake reverse tunnel.
 	Sites []RemoteSite
 }
 

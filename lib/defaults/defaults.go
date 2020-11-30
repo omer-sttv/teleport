@@ -456,11 +456,11 @@ const (
 )
 
 const (
-	// ProtocolPostgres is the PostgreSQL database procotol.
+	// ProtocolPostgres is the PostgreSQL database protocol.
 	ProtocolPostgres = "postgres"
 )
 
-// DatabaseProtocols is a list of all supported database procotols.
+// DatabaseProtocols is a list of all supported database protocols.
 var DatabaseProtocols = []string{
 	ProtocolPostgres,
 }

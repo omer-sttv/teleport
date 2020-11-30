@@ -20,7 +20,6 @@ import (
 	"context"
 	"crypto/tls"
 	"net"
-	"sync"
 
 	"github.com/gravitational/teleport"
 	"github.com/gravitational/teleport/lib/auth"
@@ -121,8 +120,6 @@ type Server struct {
 	closeContext context.Context
 	// closeFunc is the cancel function of the close context.
 	closeFunc context.CancelFunc
-	// mu protects access to the server info.
-	mu sync.RWMutex
 	// middleware extracts identity from client certificates.
 	middleware *auth.Middleware
 	// dynamicLabels contains dynamic labels for database servers.
@@ -366,7 +363,7 @@ func (s *Server) dispatch(sessionCtx *session.Context, streamWriter events.Strea
 			Log:            sessionCtx.Log,
 		}, nil
 	}
-	return nil, trace.BadParameter("unsupported database procotol %q",
+	return nil, trace.BadParameter("unsupported database protocol %q",
 		sessionCtx.Server.GetProtocol())
 }
 

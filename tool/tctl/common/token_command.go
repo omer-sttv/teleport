@@ -58,9 +58,6 @@ type TokenCommand struct {
 	// appURI is the URI (target address) of the application to add.
 	appURI string
 
-	// appPublicAddr is the public address of the application to add.
-	appPublicAddr string
-
 	// dbName is the database name to add.
 	dbName string
 	// dbProtocol is the database protocol.
