@@ -2640,7 +2640,7 @@ func (process *TeleportProcess) initProxyEndpoint(conn *Connector) error {
 	// the database clients (such as psql or mysql), authenticating them, and
 	// then routing them to a respective database server over the reverse tunnel
 	// framework.
-	if listeners.db != nil {
+	if listeners.db != nil && !process.Config.Proxy.DisableReverseTunnel {
 		authorizer, err := auth.NewAuthorizer(conn.Client, conn.Client, conn.Client)
 		if err != nil {
 			return trace.Wrap(err)

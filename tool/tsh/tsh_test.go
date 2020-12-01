@@ -181,6 +181,7 @@ func (s *MainTestSuite) TestMakeClient(c *check.C) {
 	cfg.Proxy.SSHPublicAddrs = []utils.NetAddr{proxyPublicSSHAddr}
 	cfg.Proxy.DisableReverseTunnel = true
 	cfg.Proxy.DisableWebInterface = true
+	cfg.Proxy.DisableDatabaseProxy = true
 
 	proxy, err := service.NewTeleport(cfg)
 	c.Assert(err, check.IsNil)
