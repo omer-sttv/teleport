@@ -20,14 +20,18 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/gravitational/teleport/lib/backend"
 	"github.com/gravitational/teleport/lib/backend/lite"
+	"github.com/gravitational/teleport/lib/defaults"
 	"github.com/gravitational/teleport/lib/services"
 	"github.com/gravitational/teleport/lib/utils"
 
 	"github.com/gravitational/trace"
-
+	"github.com/jonboulle/clockwork"
+	"github.com/pborman/uuid"
+	"github.com/stretchr/testify/require"
 	"gopkg.in/check.v1"
 )
 
@@ -109,4 +113,71 @@ func (s *PresenceSuite) TestTrustedClusterCRUD(c *check.C) {
 	_, err = presenceBackend.GetTrustedCluster("foo")
 	c.Assert(err, check.NotNil)
 	c.Assert(trace.IsNotFound(err), check.Equals, true)
+}
+
+func TestDatabaseServersCRUD(t *testing.T) {
+	ctx := context.Background()
+	clock := clockwork.NewFakeClock()
+
+	backend, err := lite.NewWithConfig(ctx, lite.Config{
+		Path:  t.TempDir(),
+		Clock: clock,
+	})
+	require.NoError(t, err)
+
+	presence := NewPresenceService(backend)
+
+	// Create a database server.
+	server := services.NewDatabaseServerV2("foo", nil,
+		services.DatabaseServerSpecV2{
+			Protocol: defaults.ProtocolPostgres,
+			URI:      "localhost:5432",
+			Hostname: "localhost",
+			HostID:   uuid.New(),
+		})
+
+	// Initially expect not to be returned any servers.
+	out, err := presence.GetDatabaseServers(ctx, defaults.Namespace)
+	require.NoError(t, err)
+	require.Equal(t, 0, len(out))
+
+	// Upsert server.
+	lease, err := presence.UpsertDatabaseServer(ctx, server)
+	require.NoError(t, err)
+	require.Equal(t, &services.KeepAlive{}, lease)
+
+	// Check again, expect a single server to be found.
+	out, err = presence.GetDatabaseServers(ctx, server.GetNamespace())
+	require.NoError(t, err)
+	server.SetResourceID(out[0].GetResourceID())
+	require.EqualValues(t, []services.DatabaseServer{server}, out)
+
+	// Remove the server.
+	err = presence.DeleteDatabaseServer(ctx, server.GetNamespace(), server.GetHostID(), server.GetName())
+	require.NoError(t, err)
+
+	// Now expect no servers to be returned.
+	out, err = presence.GetDatabaseServers(ctx, defaults.Namespace)
+	require.NoError(t, err)
+	require.Equal(t, 0, len(out))
+
+	// Upsert server with TTL.
+	server.SetTTL(clock, time.Hour)
+	lease, err = presence.UpsertDatabaseServer(ctx, server)
+	require.NoError(t, err)
+	require.Equal(t, &services.KeepAlive{
+		Type:    services.KeepAlive_DATABASE,
+		LeaseID: lease.LeaseID,
+		Name:    server.GetName(),
+		HostID:  server.GetHostID(),
+	}, lease)
+
+	// Delete all.
+	err = presence.DeleteAllDatabaseServers(ctx, server.GetNamespace())
+	require.NoError(t, err)
+
+	// Now expect no servers to be returned.
+	out, err = presence.GetDatabaseServers(ctx, defaults.Namespace)
+	require.NoError(t, err)
+	require.Equal(t, 0, len(out))
 }

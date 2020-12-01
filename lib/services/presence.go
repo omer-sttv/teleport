@@ -192,7 +192,7 @@ type Presence interface {
 	// UpsertDatabaseServer creates or updates a new database proxy server.
 	UpsertDatabaseServer(context.Context, DatabaseServer) (*KeepAlive, error)
 	// DeleteDatabaseServer removes the specified database proxy server.
-	DeleteDatabaseServer(context.Context, string, string) error
+	DeleteDatabaseServer(context.Context, string, string, string) error
 	// DeleteAllDatabaseServers removes all database proxy servers.
 	DeleteAllDatabaseServers(context.Context, string) error
 

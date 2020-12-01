@@ -1261,7 +1261,10 @@ func (s *databaseServer) fetch(ctx context.Context) (apply func(ctx context.Cont
 func (s *databaseServer) processEvent(ctx context.Context, event services.Event) error {
 	switch event.Type {
 	case backend.OpDelete:
-		err := s.presenceCache.DeleteDatabaseServer(ctx, event.Resource.GetMetadata().Namespace, event.Resource.GetName())
+		err := s.presenceCache.DeleteDatabaseServer(ctx,
+			event.Resource.GetMetadata().Namespace,
+			event.Resource.GetSubKind(), // Cache passes host ID via sub-kind field.
+			event.Resource.GetName())
 		if err != nil {
 			// Resource could be missing in the cache expired or not created,
 			// if the first consumed event is delete.

@@ -1070,7 +1070,7 @@ func (s *PresenceService) UpsertDatabaseServer(ctx context.Context, server servi
 	}
 	// Because there may be multiple database servers on a single host,
 	// they are stored under the following path in the backend:
-	//   /databaseServers/<namespace>/<host-uuid>/<server-name>
+	//   /databaseServers/<namespace>/<host-uuid>/<name>
 	lease, err := s.Put(ctx, backend.Item{
 		Key: backend.Key(dbServersPrefix,
 			server.GetNamespace(),
@@ -1089,14 +1089,14 @@ func (s *PresenceService) UpsertDatabaseServer(ctx context.Context, server servi
 	return &services.KeepAlive{
 		Type:    services.KeepAlive_DATABASE,
 		LeaseID: lease.ID,
-		Name:    server.GetName(),
 		HostID:  server.GetHostID(),
+		Name:    server.GetName(),
 	}, nil
 }
 
 // DeleteDatabaseServer removes the specified database proxy server.
-func (s *PresenceService) DeleteDatabaseServer(ctx context.Context, namespace string, name string) error {
-	key := backend.Key(dbServersPrefix, namespace, name)
+func (s *PresenceService) DeleteDatabaseServer(ctx context.Context, namespace, hostID, name string) error {
+	key := backend.Key(dbServersPrefix, namespace, hostID, name)
 	return s.Delete(ctx, key)
 }
 

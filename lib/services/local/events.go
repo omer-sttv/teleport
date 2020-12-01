@@ -736,18 +736,26 @@ type databaseServerParser struct {
 func (p *databaseServerParser) parse(event backend.Event) (services.Resource, error) {
 	switch event.Type {
 	case backend.OpDelete:
-		return resourceHeader(event, services.KindDatabaseServer, services.V2, 0)
+		hostID, name, err := baseTwoKeys(event.Item.Key)
+		if err != nil {
+			return nil, trace.Wrap(err)
+		}
+		return &services.DatabaseServerV2{
+			Kind:    services.KindDatabaseServer,
+			SubKind: hostID, // Pass host ID via sub-kind field for the cache.
+			Version: services.V2,
+			Metadata: services.Metadata{
+				Name:      name,
+				Namespace: defaults.Namespace,
+			},
+		}, nil
 	case backend.OpPut:
-		resource, err := services.GetDatabaseServerMarshaler().UnmarshalDatabaseServer(
+		return services.GetDatabaseServerMarshaler().UnmarshalDatabaseServer(
 			event.Item.Value,
 			services.KindDatabaseServer,
 			services.WithResourceID(event.Item.ID),
 			services.WithExpires(event.Item.Expires),
 			services.SkipValidation())
-		if err != nil {
-			return nil, trace.Wrap(err)
-		}
-		return resource, nil
 	default:
 		return nil, trace.BadParameter("event %v is not supported", event.Type)
 	}

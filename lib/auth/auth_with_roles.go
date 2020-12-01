@@ -2061,11 +2061,11 @@ func (a *ServerWithRoles) UpsertDatabaseServer(ctx context.Context, server servi
 }
 
 // DeleteDatabaseServer removes the specified database proxy server.
-func (a *ServerWithRoles) DeleteDatabaseServer(ctx context.Context, namespace string, name string) error {
+func (a *ServerWithRoles) DeleteDatabaseServer(ctx context.Context, namespace, hostID, name string) error {
 	if err := a.action(namespace, services.KindDatabaseServer, services.VerbDelete); err != nil {
 		return trace.Wrap(err)
 	}
-	return a.authServer.DeleteDatabaseServer(ctx, namespace, name)
+	return a.authServer.DeleteDatabaseServer(ctx, namespace, hostID, name)
 }
 
 // DeleteAllDatabaseServers removes all registered database proxy servers.

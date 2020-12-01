@@ -695,7 +695,7 @@ func (g *GRPCServer) DeleteDatabaseServer(ctx context.Context, req *proto.Delete
 	if err != nil {
 		return nil, trail.ToGRPC(err)
 	}
-	err = auth.DeleteDatabaseServer(ctx, req.GetNamespace(), req.GetName())
+	err = auth.DeleteDatabaseServer(ctx, req.GetNamespace(), req.GetHostID(), req.GetName())
 	if err != nil {
 		return nil, trail.ToGRPC(err)
 	}

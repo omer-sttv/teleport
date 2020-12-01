@@ -3029,13 +3029,14 @@ func (c *Client) UpsertDatabaseServer(ctx context.Context, server services.Datab
 }
 
 // DeleteDatabaseServer removes the specified database proxy server.
-func (c *Client) DeleteDatabaseServer(ctx context.Context, namespace string, name string) error {
+func (c *Client) DeleteDatabaseServer(ctx context.Context, namespace, hostID, name string) error {
 	clt, err := c.grpc()
 	if err != nil {
 		return trace.Wrap(err)
 	}
 	_, err = clt.DeleteDatabaseServer(ctx, &proto.DeleteDatabaseServerRequest{
 		Namespace: namespace,
+		HostID:    hostID,
 		Name:      name,
 	})
 	if err != nil {

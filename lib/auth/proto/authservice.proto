@@ -435,8 +435,10 @@ message UpsertDatabaseServerRequest {
 message DeleteDatabaseServerRequest {
     // Namespace is the database server namespace.
     string Namespace = 1 [ (gogoproto.jsontag) = "namespace" ];
+    // HostID is the ID of the host database server is running on.
+    string HostID = 2 [ (gogoproto.jsontag) = "host_id" ];
     // Name is the database server name.
-    string Name = 2 [ (gogoproto.jsontag) = "name" ];
+    string Name = 3 [ (gogoproto.jsontag) = "name" ];
 }
 
 // DeleteAllDatabaseServersRequest is a request to delete all database servers.
