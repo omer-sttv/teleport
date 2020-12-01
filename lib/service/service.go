@@ -2310,6 +2310,7 @@ func (process *TeleportProcess) setupProxyListeners() (*proxyListeners, error) {
 				}
 				listeners.web = listeners.mux.TLS()
 				listeners.db = listeners.mux.DB()
+				go listeners.mux.Serve()
 			} else {
 				listeners.web = listener
 			}
